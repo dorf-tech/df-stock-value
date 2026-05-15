@@ -1,4 +1,4 @@
-# stock-value
+# df-stock-value
 
 DFHack overlay for Dwarf Fortress 53.12 that displays exact item values inline on the vanilla Stocks screen.
 
