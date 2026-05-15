@@ -6,6 +6,7 @@ local overlay = require('plugins.overlay')
 local stocks = df.global.game.main_interface.stocks
 
 local VALUE_WIDTH = 9
+local MIN_ROW_TEXT_CHARS = 3
 local ITEM_TEXT_SCAN_LEFT_PCT = 0.30
 local ITEM_TEXT_SCAN_RIGHT_PCT = 0.66
 
@@ -72,7 +73,7 @@ local function get_item_list_rows()
             end
         end
 
-        if text_count >= 6 then
+        if text_count >= MIN_ROW_TEXT_CHARS then
             local row_text = get_row_text(text_x1, text_x2, y)
             if not row_text:match('^%.+%p*$') then
                 table.insert(rows, {
