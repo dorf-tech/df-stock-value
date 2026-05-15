@@ -41,10 +41,20 @@ local function get_row_text(x1, x2, y)
     return table.concat(chars)
 end
 
-local function is_screen_item_row(row_text)
-    local first_alpha = row_text:match('[A-Za-z]')
-    if not first_alpha then return false end
-    return first_alpha:match('%l') ~= nil
+local function normalize_item_text(text)
+    if not text then return '' end
+    return text:lower():gsub('[^%w]+', '')
+end
+
+local function is_item_action_row(y, action_x)
+    local saw_x = false
+    local saw_o = false
+    for x=action_x-8,action_x+6 do
+        local ch = get_tile_ch(x, y)
+        saw_x = saw_x or ch == 'x' or ch == 'X'
+        saw_o = saw_o or ch == 'o' or ch == 'O' or ch == '0'
+    end
+    return saw_x and saw_o
 end
 
 local function get_item_list_rows()
@@ -54,7 +64,7 @@ local function get_item_list_rows()
     local text_x2 = math.floor(screen_w * ITEM_TEXT_SCAN_RIGHT_PCT)
     local item_pane_action_x = math.floor(screen_w * 0.735)
 
-    for y=2,screen_h-3 do
+    for y=2,screen_h-1 do
         local text_count = 0
         for x=text_x1,text_x2 do
             if is_text_ch(get_tile_ch(x, y)) then
@@ -68,7 +78,9 @@ local function get_item_list_rows()
                 table.insert(rows, {
                     y=y,
                     action_x=item_pane_action_x,
-                    is_item=is_screen_item_row(row_text),
+                    text=row_text,
+                    norm=normalize_item_text(row_text),
+                    is_item=is_item_action_row(y, item_pane_action_x),
                 })
             end
         end
@@ -100,6 +112,31 @@ local function get_item_start_for_slot(slot)
     end
 
     return item_idx
+end
+
+local function item_matches_row(item, row)
+    if not item or not row or not row.norm or #row.norm < 3 then return false end
+    local ok, desc = pcall(dfhack.items.getDescription, item, 0, true)
+    if not ok then return false end
+    local norm = normalize_item_text(desc)
+    return norm:find(row.norm, 1, true) or row.norm:find(norm, 1, true)
+end
+
+local function find_visible_item(row, item_idx)
+    local list = stocks.current_type_i_list
+    if not list then return nil, item_idx end
+
+    local max_idx = #list - 1
+    local start_idx = math.max(0, item_idx - 4)
+    local end_idx = math.min(max_idx, item_idx + 80)
+    for i=start_idx,end_idx do
+        local item = list[i]
+        if item_matches_row(item, row) then
+            return item, i + 1
+        end
+    end
+
+    return list[item_idx], item_idx + 1
 end
 
 local function paint_item_value(item, row)
@@ -137,8 +174,9 @@ function StockValueOverlay:onRenderFrame()
     local item_idx = get_item_start_for_slot(stocks.scroll_position_item // 3)
     for _,row in ipairs(rows) do
         if row.is_item then
-            paint_item_value(stocks.current_type_i_list[item_idx], row)
-            item_idx = item_idx + 1
+            local item
+            item, item_idx = find_visible_item(row, item_idx)
+            paint_item_value(item, row)
         end
     end
 end
