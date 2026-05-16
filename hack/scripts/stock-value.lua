@@ -47,6 +47,11 @@ local function normalize_item_text(text)
     return text:lower():gsub('[^%w]+', '')
 end
 
+local function get_stack_count(text)
+    if not text then return nil end
+    return tonumber(text:match('%[(%d+)%]'))
+end
+
 local function is_item_action_row(y, action_x)
     local saw_x = false
     local saw_o = false
@@ -81,6 +86,7 @@ local function get_item_list_rows()
                     action_x=item_pane_action_x,
                     text=row_text,
                     norm=normalize_item_text(row_text),
+                    stack_count=get_stack_count(row_text),
                     is_item=is_item_action_row(y, item_pane_action_x),
                 })
             end
@@ -119,6 +125,8 @@ local function item_matches_row(item, row)
     if not item or not row or not row.norm or #row.norm < 3 then return false end
     local ok, desc = pcall(dfhack.items.getDescription, item, 0, true)
     if not ok then return false end
+    local desc_stack_count = get_stack_count(desc)
+    if row.stack_count ~= desc_stack_count then return false end
     local norm = normalize_item_text(desc)
     return norm:find(row.norm, 1, true) or row.norm:find(norm, 1, true)
 end
