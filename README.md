@@ -131,3 +131,9 @@ Then delete:
 - Should work on Windows and Linux when installed into the matching DFHack `hack/scripts/` folder.
 - macOS works when running the Windows version through Sikarugir/Wine, as long as DFHack is installed and working there.
 - The overlay reads visible Stocks rows and maps them back to DF item objects so duplicate names can show different values.
+
+## Limitations
+
+- The vanilla Stocks screen does not expose visible row-to-item mapping to Lua, so this overlay reconstructs that mapping from the rendered Stocks list and DFHack item data.
+- It may need updates if future Dwarf Fortress or DFHack versions change the Stocks screen layout or internal stock list fields.
+- If a row is misdetected, the overlay should only draw an incorrect value; it does not modify item data or save data.
