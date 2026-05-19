@@ -4,6 +4,8 @@ DFHack overlay for Dwarf Fortress 53.12 that displays exact item values inline o
 
 ![df-stock-value showing item values in the Stocks screen](docs/screenshots/stocks-values.png)
 
+![df-stock-value showing varied codex values in the Stocks screen](docs/screenshots/codex-values.png)
+
 ## Requirements
 
 - Dwarf Fortress 53.12
